@@ -129,14 +129,22 @@ public class MainActivity extends Activity implements GoogleApiClient.Connection
 
     private void startHourlyActivity() {
         Intent intent = new Intent(this,HourlyForecastActivity.class);
-        intent.putExtra(Hourly_Forecast,mForecast.getHourlyForecast());
-        startActivity(intent);
+        if(mForecast != null) {
+            intent.putExtra(Hourly_Forecast, mForecast.getHourlyForecast());
+            startActivity(intent);
+        }else{
+            Toast.makeText(this,R.string.error_network,Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void startDailyActivity() {
         Intent intent = new Intent(this,DailyForecastActivity.class);
-        intent.putExtra(Daily_Forecast,mForecast.getDailyForecast());
-        startActivity(intent);
+        if (mForecast != null) {
+            intent.putExtra(Daily_Forecast,mForecast.getDailyForecast());
+            startActivity(intent);
+        }else{
+            Toast.makeText(this,R.string.error_network,Toast.LENGTH_SHORT).show();
+        }
     }
 
     private Forecast parseForecastDetails(String jsonData) throws  JSONException{
