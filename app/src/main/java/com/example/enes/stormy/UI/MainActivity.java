@@ -1,12 +1,13 @@
 package com.example.enes.stormy.UI;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v4.content.res.ResourcesCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,6 +21,12 @@ import com.example.enes.stormy.weather.Current;
 import com.example.enes.stormy.weather.Day;
 import com.example.enes.stormy.weather.Forecast;
 import com.example.enes.stormy.weather.Hour;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderApi;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,11 +40,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener{
     public static final String TAG = MainActivity.class.getSimpleName();
     public static final String Daily_Forecast = "DAILY_FORECAST";
     public static final String Hourly_Forecast = "HOURLY_FORECAST";
     private Forecast mForecast;
+
+    private Location location;
 
     TextView mTemperatureLabel;
     TextView mTimeLabel;
@@ -49,21 +60,45 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar mSpinnerView;
     Button mDailyButton;
     Button mHourlyButton;
+    TextView mLocationLabel;
+    GoogleApiClient mGoogleApiClient;
+    private double mLatitude;
+    private double mLongitude;
+    FusedLocationProviderApi mFusedLocationProviderApi;
+    private LocationRequest mLocationRequest;
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onResume() {
+        mGoogleApiClient.connect();
+        super.onResume();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState)  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(mGoogleApiClient == null){
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API).build();
+        }
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1000); // 1 second, in milliseconds
 
-
-        mTemperatureLabel =(TextView) findViewById(R.id.temperatureLabel);
+        mTemperatureLabel = (TextView) findViewById(R.id.temperatureLabel);
         mTimeLabel = (TextView) findViewById(R.id.timeLabel);
-        mSummaryLabel  = (TextView) findViewById(R.id.summaryLabel);
-        mHumidityValue  = (TextView) findViewById(R.id.humidityValue);
+        mSummaryLabel = (TextView) findViewById(R.id.summaryLabel);
+        mHumidityValue = (TextView) findViewById(R.id.humidityValue);
         mPrecipValue = (TextView) findViewById(R.id.precipValue);
-        mIconImageView  = (ImageView) findViewById(R.id.iconImageView);
+        mIconImageView = (ImageView) findViewById(R.id.iconImageView);
         mRefreshButton = (ImageView) findViewById(R.id.refreshButton);
         mSpinnerView = (ProgressBar) findViewById(R.id.mSpinnerView);
+        mLocationLabel = (TextView) findViewById(R.id.locationLabel);
 
         mDailyButton = (Button) findViewById(R.id.dailyButton);
         mHourlyButton = (Button) findViewById(R.id.hourlyButton);
@@ -86,14 +121,11 @@ public class MainActivity extends AppCompatActivity {
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getForecast();
+                getForecast(mLatitude,mLongitude);
             }
         });
-
-
-
-        getForecast();
     }
+
 
     private void startHourlyActivity() {
         Intent intent = new Intent(this,HourlyForecastActivity.class);
@@ -128,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0; i< data.length();i++ ){
             JSONObject jsonDay = data.getJSONObject(i);
             Day day = new Day();
-            Log.v(TAG,"dailyData: "+jsonDay.toString());
             day.setSummary(jsonDay.getString("summary"));
             day.setIcon(jsonDay.getString("icon"));
             day.setTemperature(jsonDay.getDouble("temperatureMax"));
@@ -150,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
         for(int i = 0 ; i<data.length();i++){
             JSONObject jsonHour = data.getJSONObject(i);
             Hour hour = new Hour();
-            Log.v(TAG,"hourly data: "+jsonHour.toString());
             hour.setSummary(jsonHour.getString("summary"));
             hour.setTemperature(jsonHour.getDouble("temperature"));
             hour.setIcon(jsonHour.getString("icon"));
@@ -165,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
     private Current getCurrentDetails(String jsonData) throws JSONException{
         JSONObject forecast = new JSONObject(jsonData);
         JSONObject currently = forecast.getJSONObject("currently");
-        Log.v(TAG,"current data: "+currently.toString());
         String timezone = forecast.getString("timezone");
 
         Current current = new Current();
@@ -207,10 +236,8 @@ public class MainActivity extends AppCompatActivity {
         dialog.show(getFragmentManager(),"error_dialog");
     }
 
-    private void getForecast(){
+    private void getForecast(double latitude, double longitude){
         String apiKey ="406e6444fa0979d7c9cdb4fb72250f4c";
-        double latitude = 39.750359;
-        double longitude = 37.015598;
         String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
 
         if(networkAvailable()){
@@ -241,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
                     });
                     try{
                         String jsonData = response.body().string();
+                        Log.d(TAG,jsonData);
                         if(response.isSuccessful()){
                             mForecast = parseForecastDetails(jsonData);
                             runOnUiThread(new Runnable() {
@@ -282,5 +310,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    public void onConnected(Bundle bundle) {
+        location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(location != null){
+            mLatitude = location.getLatitude();
+            //Log.d(TAG,mLatitude+"");
+            mLongitude = location.getLongitude();
+            //Log.d(TAG,mLongitude+"");
+            getForecast(mLatitude,mLongitude);
+        }else{
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest,this);
+        }
+    }
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient,this);
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
 }
 
