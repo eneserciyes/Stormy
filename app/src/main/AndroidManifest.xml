@@ -32,6 +32,13 @@
         </activity>
         <activity android:name=".UI.HourlyForecastActivity">
         </activity>
+        <activity android:name=".UI.ChooseCityActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

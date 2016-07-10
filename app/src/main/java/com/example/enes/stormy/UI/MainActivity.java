@@ -192,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
         mIconImageView.setImageDrawable(drawable);
     }
 
-    private boolean networkAvailable() {
+    public boolean networkAvailable() {
         ConnectivityManager manager = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
         boolean isAvailable = false;
