@@ -24,4 +24,34 @@
     <string name="title_activity_get_location">getLocation</string>
     <string name="title_activity_daily_forecast">DailyForecastActivity</string>
     <string name="nodailyforecastData">There is no data to display</string>
+    <string name="next">NEXT</string>
+    
+    <string-array name="country_options">
+        <item>Turkey</item>
+        <item>France</item>
+        <item>United States of America</item>
+    </string-array>
+
+    <string-array name="Turkey">
+        <item>Niğde</item>
+        <item>Kayseri</item>
+        <item>Sivas</item>
+        <item>İstanbul</item>
+    </string-array>
+
+    <string-array name="France">
+        <item>Paris</item>
+        <item>Toulouse</item>
+        <item>Marseille</item>
+    </string-array>
+
+    <string-array name="USA">
+        <item>New York</item>
+        <item>Chicago</item>
+        <item>Salt Lake City</item>
+        <item>Los Angeles</item>
+        <item>Boston</item>
+    </string-array>
+
+
 </resources>

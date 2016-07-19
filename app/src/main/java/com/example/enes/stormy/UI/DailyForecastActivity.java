@@ -11,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.enes.stormy.R;
@@ -20,15 +21,27 @@ import com.example.enes.stormy.weather.Day;
 import java.util.Arrays;
 
 public class DailyForecastActivity extends ListActivity {
-private Day mDays[];
+    private Day mDays[];
+    private String mCountry;
+    private String mCity;
+    private TextView mLocationLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_daily_forecast);
+
+        mLocationLabel = (TextView) findViewById(R.id.locationLabel);
+
         Intent intent = getIntent();
         Parcelable[] parcelables = intent.getParcelableArrayExtra(MainActivity.Daily_Forecast);
         mDays = Arrays.copyOf(parcelables,parcelables.length,Day[].class);
+
+        mCountry = intent.getStringExtra(ChooseCityActivity.KEY_COUNTRY);
+        mCity = intent.getStringExtra(ChooseCityActivity.KEY_CITY);
+
+        mLocationLabel.setText(mCity+","+mCountry);
+
 
         DayAdapter adapter = new DayAdapter(this, mDays);
         setListAdapter(adapter);

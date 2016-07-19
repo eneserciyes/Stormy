@@ -19,32 +19,48 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="40dp"
-        android:textSize="50sp"/>
+        android:textSize="70sp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Choose a city"
         android:id="@+id/pageLabel"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:textSize="24sp"
-        android:layout_marginBottom="20dp"/>
-
-    <Spinner
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/countrySpinner"
-        android:layout_marginTop="53dp"
         android:layout_below="@+id/headerTextView"
         android:layout_centerHorizontal="true"
-        android:spinnerMode="dialog"/>
+        android:layout_marginTop="15dp"/>
 
     <Spinner
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/citySpinner"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:spinnerMode="dialog"/>
+        android:id="@+id/country"
+        android:spinnerMode="dialog"
+        android:layout_below="@+id/pageLabel"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentStart="false"
+        android:layout_marginTop="35dp"/>
+
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/city"
+        android:spinnerMode="dialog"
+        android:layout_below="@+id/country"
+
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="52dp"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/next"
+        android:id="@+id/nextButton"
+        android:layout_weight="1"
+        android:background="#40ffffff"
+        android:textColor="#FFFFFFFF"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
 </RelativeLayout>

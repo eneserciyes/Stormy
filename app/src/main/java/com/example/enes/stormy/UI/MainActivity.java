@@ -1,5 +1,6 @@
 package com.example.enes.stormy.UI;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
@@ -33,6 +34,10 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.example.enes.stormy.UI.ChooseCityActivity.KEY_CITY;
+import static com.example.enes.stormy.UI.ChooseCityActivity.KEY_COUNTRY;
+import static com.example.enes.stormy.UI.ChooseCityActivity.KEY_LATITUDE;
+
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
     public static final String Daily_Forecast = "DAILY_FORECAST";
@@ -49,13 +54,18 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar mSpinnerView;
     Button mDailyButton;
     Button mHourlyButton;
+    TextView mLocationLabel;
+    private double mLongitude;
+    private double mLatitude;
+    private String mCountry;
+    private String mCity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        mLocationLabel = (TextView) findViewById(R.id.locationLabel);
         mTemperatureLabel =(TextView) findViewById(R.id.temperatureLabel);
         mTimeLabel = (TextView) findViewById(R.id.timeLabel);
         mSummaryLabel  = (TextView) findViewById(R.id.summaryLabel);
@@ -70,6 +80,11 @@ public class MainActivity extends AppCompatActivity {
 
         mSpinnerView.setVisibility(View.INVISIBLE);
 
+        Intent intent = getIntent();
+        mLatitude = intent.getDoubleExtra(ChooseCityActivity.KEY_LATITUDE,0);
+        mLongitude = intent.getDoubleExtra(ChooseCityActivity.KEY_LONGITUDE,0);
+        mCountry = intent.getStringExtra(ChooseCityActivity.KEY_COUNTRY);
+        mCity = intent.getStringExtra(ChooseCityActivity.KEY_CITY);
 
         mDailyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,24 +101,28 @@ public class MainActivity extends AppCompatActivity {
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getForecast();
+                getForecast(mLatitude,mLongitude);
             }
         });
 
 
 
-        getForecast();
+        getForecast(mLatitude,mLongitude);
     }
 
     private void startHourlyActivity() {
         Intent intent = new Intent(this,HourlyForecastActivity.class);
         intent.putExtra(Hourly_Forecast,mForecast.getHourlyForecast());
+        intent.putExtra(KEY_CITY,mCity);
+        intent.putExtra(KEY_COUNTRY,mCountry);
         startActivity(intent);
     }
 
     private void startDailyActivity() {
         Intent intent = new Intent(this,DailyForecastActivity.class);
         intent.putExtra(Daily_Forecast,mForecast.getDailyForecast());
+        intent.putExtra(KEY_CITY,mCity);
+        intent.putExtra(KEY_COUNTRY,mCountry);
         startActivity(intent);
     }
 
@@ -184,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void updateDisplay() {
         mTemperatureLabel.setText(mForecast.getCurrent().getTemperature()+"");
+        mLocationLabel.setText(mCity+","+mCountry);
         mTimeLabel.setText(mForecast.getCurrent().getFormattedTime() + " it will be");
         mHumidityValue.setText(mForecast.getCurrent().getHumidity()+"");
         mPrecipValue.setText(mForecast.getCurrent().getPrecipitation()+ "%");
@@ -207,10 +227,9 @@ public class MainActivity extends AppCompatActivity {
         dialog.show(getFragmentManager(),"error_dialog");
     }
 
-    private void getForecast(){
+    private void getForecast(double latitude,double longitude){
         String apiKey ="406e6444fa0979d7c9cdb4fb72250f4c";
-        double latitude = 39.750359;
-        double longitude = 37.015598;
+
         String forecastUrl = "https://api.forecast.io/forecast/"+apiKey+"/"+latitude+","+longitude;
 
         if(networkAvailable()){
